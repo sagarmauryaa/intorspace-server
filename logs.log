@@ -1,0 +1,11 @@
+{"level":"error","message":{"body":{"clientVersion":"5.19.1","code":"P2020","meta":{"details":"The column `created_on` contained an invalid datetime value with either day or month set to zero.","modelName":"admin"},"name":"PrismaClientKnownRequestError"},"type":"Auth Error"},"timestamp":"2024-09-22T10:59:57.705Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:01:58.479Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:02:43.411Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:03:26.648Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:04:27.430Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:05:28.224Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:06:16.785Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:07:23.223Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:07:51.561Z"}
+{"level":"error","message":{"body":{},"type":"Auth Error"},"timestamp":"2024-09-22T11:08:43.473Z"}
+{"level":"error","message":{"body":{"clientVersion":"5.19.1","name":"PrismaClientInitializationError"},"type":"Auth Error"},"timestamp":"2024-09-22T15:36:58.932Z"}

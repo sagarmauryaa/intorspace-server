@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id         Int      @id @default(autoincrement())
+  admin_id   String
+  image      String   @db.Text
+  name       String   @db.VarChar(150)
+  email      String   @unique @db.VarChar(150)
+  phone      String   @db.VarChar(150)
+  password   String   @db.VarChar(255)
+  created_on DateTime @default(now())
+  updated_on DateTime @default(now()) @db.Timestamp(0)
+}
+
+model legal_pages {
+  id      Int    @unique(map: "id") @default(autoincrement())
+  slug    String @db.VarChar(255)
+  title   String @db.VarChar(255)
+  content String @db.LongText
+}
+
+model site_faqs {
+  id       Int    @id @default(autoincrement())
+  question String
+  answer   String
+}
