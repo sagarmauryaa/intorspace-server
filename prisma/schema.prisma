@@ -21,7 +21,7 @@ model admin {
 
 model legal_pages {
   id      Int    @unique(map: "id") @default(autoincrement())
-  slug    String @db.VarChar(255)
+  slug    String @unique @db.VarChar(255)
   title   String @db.VarChar(255)
   content String @db.LongText
 }
@@ -30,4 +30,13 @@ model site_faqs {
   id       Int    @id @default(autoincrement())
   question String
   answer   String
+}
+
+model site_feedback {
+  id         Int      @unique(map: "id") @default(autoincrement())
+  name       String   @db.VarChar(500)
+  email      String   @db.VarChar(500)
+  phone      String   @db.VarChar(10)
+  feedback   String   @db.VarChar(1000)
+  created_on DateTime @default(now()) @db.Date
 }

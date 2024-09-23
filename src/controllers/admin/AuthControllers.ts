@@ -28,21 +28,31 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             });
 
             if (!user) {
-                return res.status(404).send("User not found");
+                return res.status(404).json({
+                    status: false,
+                    message: "User not found"
+                });
             }
 
             const auth = await compare(password, user.password);
             if (!auth) {
-                return res.status(400).send("Invalid Password");
+                return res.status(400).json({
+                    status: false,
+                    message: "Invalid Password"
+                });
             }
             const token = createToken(email, user.id.toString());
             return res.status(200).json({
+                status: true,
                 message: "Logged in successfully!",
                 user: { id: user.id, name: user.name, email: user.email, phone: user.phone },
                 token: token
             });
         } else {
-            return res.status(400).send("Email and Password Required");
+            return res.status(400).json({
+                status: false,
+                message: "Email and Password Required"
+            });
         }
     } catch (err: unknown) {
         return res.status(500).send("Internal Server Error");
@@ -78,16 +88,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 // };
 
 
-export const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
+export const getUserInfo = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const prisma = new PrismaClient();
+
     try {
-        const { id } = req.body;
-        if (id) {
-            const prisma = new PrismaClient();
+
+        if (req.userId) { // Now TypeScript recognizes userId
             const user = await prisma.admin.findUnique({
-                where: { id: id },
+                where: {
+                    id: Number(req.userId),
+                },
             });
 
             return res.status(200).json({
+                status: true,
                 user: {
                     id: user?.id,
                     email: user?.email,
@@ -95,6 +109,9 @@ export const getUserInfo = async (req: Request, res: Response, next: NextFunctio
                     phone: user?.phone,
                 },
             });
+        } else {
+            // User ID not provided
+            return res.status(400).json({ status: false, message: "User ID is required" });
         }
     } catch (err: unknown) {
         res.status(500).send("Internal Server Occurred");
@@ -104,8 +121,6 @@ export const getUserInfo = async (req: Request, res: Response, next: NextFunctio
 export const setUserInfo = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id, name, email, password } = req.body;
-        console.log("req.cookies::", req.cookies);
-
         if (id && email) {
             const prisma = new PrismaClient();
             const user = await prisma.admin.findUnique({
@@ -128,13 +143,13 @@ export const setUserInfo = async (req: Request, res: Response, next: NextFunctio
                 data: updateData,
             });
 
-            return res.status(200).json({ message: "Profile data updated successfully.", user: { id: result.id, name: result.name, email: result.email, phone: result.phone }, },);
+            return res.status(200).json({ status: true, message: "Profile data updated successfully.", user: { id: result.id, name: result.name, email: result.email, phone: result.phone }, },);
         } else {
-            return res.status(400).send("Something error. Please try again!");
+            return res.status(400).json({ status: false, message: "Something error. Please try again!" });
         }
 
     } catch (err: unknown) {
-        return res.status(500).send("Internal Server Error");
+        return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
 
