@@ -53,26 +53,37 @@ export const UpdateLegalPage = async (req: Request, res: Response, next: NextFun
             where: { slug: String(slug) },
         });
 
-        if (!legalPage) {
-            return res.status(404).json({
-                status: false,
-                message: "Legal page not found.",
+        if (legalPage) {
+            // Update existing legal page
+            const updatedLegalPage = await prisma.legal_pages.update({
+                where: { id: legalPage.id }, // Use unique `id` for the update
+                data: {
+                    ...(title && { title }),
+                    ...(content && { content }),
+                },
+            });
+
+            return res.status(200).json({
+                status: true,
+                message: 'Updated successfully.',
+                updatedLegalPage,
+            });
+        } else {
+            // Create a new legal page if not found
+            const newLegalPage = await prisma.legal_pages.create({
+                data: {
+                    slug, // Use the slug provided in the request
+                    title: title || '', // Provide an empty string if title is undefined
+                    content: content || '', // Provide an empty string if content is undefined
+                },
+            });
+
+            return res.status(201).json({
+                status: true,
+                message: 'Created successfully.',
+                newLegalPage,
             });
         }
-
-        const updatedLegalPage = await prisma.legal_pages.update({
-            where: { id: legalPage.id }, // Use unique `id` for the update
-            data: {
-                ...(title && { title }),
-                ...(content && { content }),
-            },
-        });
-
-        return res.status(200).json({
-            status: true,
-            message: 'Updated successfully.',
-            updatedLegalPage,
-        });
     } catch (err: unknown) {
         console.error(err); // Log error for debugging
 

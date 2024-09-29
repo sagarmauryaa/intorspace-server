@@ -1,8 +1,14 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { genSalt, hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
-import { renameSync } from "fs";
 import { Request, Response, NextFunction } from "express";
+import { renameSync, unlinkSync, existsSync } from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+// ES module alternative for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const generatePassword = async (password: string): Promise<string> => {
     const salt = await genSalt();
@@ -45,7 +51,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             return res.status(200).json({
                 status: true,
                 message: "Logged in successfully!",
-                user: { id: user.id, name: user.name, email: user.email, phone: user.phone },
+                user: {
+                    id: user?.id,
+                    email: user?.email,
+                    name: user?.name,
+                    phone: user?.phone,
+                    profileImage: user?.profileImage,
+                },
                 token: token
             });
         } else {
@@ -58,7 +70,6 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         return res.status(500).send("Internal Server Error");
     }
 };
-
 
 // export const signup = async (req: Request, res: Response, next: NextFunction) => {
 //     try {
@@ -93,10 +104,10 @@ export const getUserInfo = async (req: Request, res: Response, next: NextFunctio
 
     try {
 
-        if (req.userId) { // Now TypeScript recognizes userId
+        if (req?.userId) { // Now TypeScript recognizes userId
             const user = await prisma.admin.findUnique({
                 where: {
-                    id: Number(req.userId),
+                    id: Number(req?.userId),
                 },
             });
 
@@ -107,6 +118,7 @@ export const getUserInfo = async (req: Request, res: Response, next: NextFunctio
                     email: user?.email,
                     name: user?.name,
                     phone: user?.phone,
+                    profileImage: user?.profileImage,
                 },
             });
         } else {
@@ -143,7 +155,15 @@ export const setUserInfo = async (req: Request, res: Response, next: NextFunctio
                 data: updateData,
             });
 
-            return res.status(200).json({ status: true, message: "Profile data updated successfully.", user: { id: result.id, name: result.name, email: result.email, phone: result.phone }, },);
+            return res.status(200).json({
+                status: true, message: "Profile data updated successfully.", user: {
+                    id: user?.id,
+                    email: user?.email,
+                    name: user?.name,
+                    phone: user?.phone,
+                    profileImage: user?.profileImage,
+                },
+            },);
         } else {
             return res.status(400).json({ status: false, message: "Something error. Please try again!" });
         }
@@ -153,25 +173,48 @@ export const setUserInfo = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
-// export const setUserImage = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         if (req.file && req.userId) {
-//             const date = Date.now();
-//             const fileName = "uploads/profiles/" + date + req.file.originalname;
-//             renameSync(req.file.path, fileName);
+export const setUserImage = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
+    try {
 
-//             const prisma = new PrismaClient();
-//             await prisma.admin.update({
-//                 where: { id: req.userId },
-//                 data: { profileImage: fileName },
-//             });
+        if (!req.file || !req.userId) {
+            return res.status(400).json({ status: false, message: "Please try again!" });
+        }
 
-//             return res.status(200).json({ img: fileName });
-//         } else {
-//             return res.status(400).send("Image not included or Cookie Error.");
-//         }
-//     } catch (err: unknown) {
-//         console.log(err);
-//         res.status(500).send("Internal Server Occurred");
-//     }
-// };
+        const userId = Number(req.userId);
+        const user = await prisma.admin.findUnique({
+            where: { id: userId },
+            select: { profileImage: true },
+        });
+
+        if (!user) {
+            return res.status(404).json({ status: false, message: "User not found." });
+        }
+        const existingImage = user.profileImage;
+
+        if (existingImage) {
+            const existingImagePath = path.join(__dirname, "../../../", existingImage);
+            if (existsSync(existingImagePath)) {
+                unlinkSync(existingImagePath);
+            }
+        }
+
+
+        const originalFileName = req.file.originalname?.replace(/\s+/g, "_");
+        const date = Date.now();
+        const fileName = "uploads/profiles/" + date + originalFileName;
+        renameSync(req.file.path, fileName);
+
+
+        await prisma.admin.update({
+            where: { id: userId },
+            data: { profileImage: fileName },
+        });
+
+        return res.status(200).json({ status: true, message: "Profile data updated successfully.", profileImage: fileName });
+
+    } catch (err: unknown) {
+        console.log(err);
+        res.status(500).json({ status: false, message: "Internal Server Occurred" });
+    }
+};

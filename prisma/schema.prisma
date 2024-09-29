@@ -8,15 +8,15 @@ datasource db {
 }
 
 model admin {
-  id         Int      @id @default(autoincrement())
-  admin_id   String
-  image      String   @db.Text
-  name       String   @db.VarChar(150)
-  email      String   @unique @db.VarChar(150)
-  phone      String   @db.VarChar(150)
-  password   String   @db.VarChar(255)
-  created_on DateTime @default(now())
-  updated_on DateTime @default(now()) @db.Timestamp(0)
+  id           Int      @id @default(autoincrement())
+  admin_id     String
+  profileImage String
+  name         String   @db.VarChar(150)
+  email        String   @unique @db.VarChar(150)
+  phone        String   @db.VarChar(150)
+  password     String   @db.VarChar(255)
+  created_on   DateTime @default(now())
+  updated_on   DateTime @default(now()) @db.Timestamp(0)
 }
 
 model legal_pages {
@@ -38,5 +38,20 @@ model site_feedback {
   email      String   @db.VarChar(500)
   phone      String   @db.VarChar(10)
   feedback   String   @db.VarChar(1000)
+  created_on DateTime @default(now()) @db.Date
+}
+
+model categories {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  image      String
+  created_on DateTime @default(now()) @db.Date
+}
+
+model sub_categories {
+  id         Int      @id @default(autoincrement())
+  cat_id     Int
+  name       String   @db.VarChar(255)
+  image      String
   created_on DateTime @default(now()) @db.Date
 }

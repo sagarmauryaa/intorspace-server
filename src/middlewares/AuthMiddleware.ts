@@ -11,15 +11,15 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
 		const jwtCookie = req.cookies.authToken; // Directly access the cookie
 
 		const token = jwtCookie as string;
-		if (!token) return res.status(401).send("You are not authenticated!");
+		if (!token) return res.status(401).json({ status: false, message: "You are not authenticated!" });
 
 		jwt.verify(token, process.env.JWT_KEY as string, (err, payload) => {
-			if (err) return res.status(403).send("Token is not valid!");
+			if (err) return res.status(403).json({ status: false, message: "Token is not valid!" });
 			const jwtPayload = payload as JwtPayload;
 			req.userId = jwtPayload?.userId; // Extract userId from the JWT payload
 			next();
 		});
 	} catch (error) {
-		return res.status(400).send("Invalid token or cookie.");
+		return res.status(400).json({ status: false, message: "Invalid token or cookie." });
 	}
 };
