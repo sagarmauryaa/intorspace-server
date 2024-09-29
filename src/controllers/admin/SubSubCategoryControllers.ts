@@ -8,10 +8,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const AddCategory = async (req: Request, res: Response, next: NextFunction) => {
+export const AddSubSubCategory = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
     try {
-        const prisma = new PrismaClient();
-        const { name }: { name: string } = req.body;
+        const { name, cat_id, subCatId }: { name: string; cat_id: number; subCatId: number } = req.body;
 
         // Check if file was uploaded
         if (!req.file) {
@@ -21,39 +21,49 @@ export const AddCategory = async (req: Request, res: Response, next: NextFunctio
         // Handle the file upload, renaming, and storing the path
         const originalFileName = req.file.originalname?.replace(/\s+/g, "_");
         const date = Date.now();
-        const fileName = "uploads/category/" + date + originalFileName;
+        const fileName = `uploads/sub-sub-category/${date}_${originalFileName}`;
         renameSync(req.file.path, fileName);
 
+        const parsedCatId = Number(cat_id);
+        const parsedSubCatId = Number(subCatId);
         // Create the new category
-        await prisma.category.create({
+        await prisma.subSubCategory.create({
             data: {
                 name,
                 image: fileName,
+                category: {
+                    connect: { id: parsedCatId },
+                },
+                subcategory: {
+                    connect: { id: parsedSubCatId },
+                },
             },
         });
 
         return res.status(201).json({
             status: true,
-            message: 'Category created successfully.',
+            message: 'Sub-subcategory created successfully.',
         });
     } catch (err: unknown) {
         return res.status(500).json({
             status: false,
             message: "Internal Server Error: " + err,
         });
+    } finally {
+        await prisma.$disconnect();
     }
 };
 
 
-export const FetchAllCategory = async (req: Request, res: Response, next: NextFunction) => {
+export const FetchAllSubSubCategory = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
     try {
-        const prisma = new PrismaClient();
 
-        const categories = await prisma.category.findMany();
+        const categories = await prisma.subSubCategory.findMany();
 
         return res.status(200).json({
             status: true,
-            message: 'Categories fetched successfully!',
+            message: 'Sub Sub-Categories fetched successfully!',
             data: categories,
         });
     } catch (err: unknown) {
@@ -61,62 +71,42 @@ export const FetchAllCategory = async (req: Request, res: Response, next: NextFu
             status: false,
             message: "Internal Server Error",
         });
+    } finally {
+        await prisma.$disconnect();
     }
 };
 
-export const FetchAllCategoryOption = async (req: Request, res: Response, next: NextFunction) => {
+export const FetchSubSubCategoryById = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
     try {
-        const prisma = new PrismaClient();
-
-        const categories = await prisma.category.findMany();
-
-        const formattedCategories = categories.map(category => ({
-            value: String(category.id),  // Assuming 'id' is the value
-            label: category.name, // Assuming 'name' is the label
-        }));
-
-        return res.status(200).json({
-            status: true,
-            message: 'Categories fetched successfully!',
-            data: formattedCategories, // Return the transformed array
-        });
-    } catch (err: unknown) {
-        return res.status(500).json({
-            status: false,
-            message: "Internal Server Error",
-        });
-    }
-};
-
-export const FetchCategoryById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const prisma = new PrismaClient();
         const { id } = req.params; // Get the ID from the request parameters
 
-        const cat = await prisma.category.findUnique({
+        const cat = await prisma.subSubCategory.findUnique({
             where: { id: Number(id) }, // Ensure the ID is a number
         });
 
         if (!cat) {
-            return res.status(404).json({ status: false, message: "Category not found." });
+            return res.status(404).json({ status: false, message: "Sub Category not found." });
         }
 
         return res.status(200).json({
             status: true,
             message: 'Category fetched successfully!',
-            data: { name: cat.name, image: cat.image },
+            data: { name: cat.name, cat_id: String(cat.cat_id), image: cat.image },
         });
     } catch (err: unknown) {
         return res.status(500).json({
             status: false,
             message: "Internal Server Error" + err,
         });
+    } finally {
+        await prisma.$disconnect();
     }
 };
 
-export const UpdateCategory = async (req: Request, res: Response, next: NextFunction) => {
+export const UpdateSubSubCategory = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
     try {
-        const prisma = new PrismaClient();
         const { name }: { name: string } = req.body;
         const { id } = req.params;
         console.log(req.file);
@@ -127,7 +117,7 @@ export const UpdateCategory = async (req: Request, res: Response, next: NextFunc
             return res.status(400).json({ status: false, message: "ID, answer, or question is required." });
         }
 
-        const category = await prisma.category.findUnique({
+        const category = await prisma.subSubCategory.findUnique({
             where: { id: Number(id) },
         });
 
@@ -157,12 +147,12 @@ export const UpdateCategory = async (req: Request, res: Response, next: NextFunc
             renameSync(req.file.path, fileName);
             updateData.image = fileName;
         }
-        await prisma.category.update({
+        await prisma.subSubCategory.update({
             where: { id: Number(id) },
             data: updateData
         });
 
-        // const updatedFaq = await prisma.category.update({
+        // const updatedFaq = await prisma.subSubCategory.update({
         //     where: { id: Number(id) },
         //     data: {
         //         name,
@@ -179,20 +169,21 @@ export const UpdateCategory = async (req: Request, res: Response, next: NextFunc
             status: false,
             message: "Internal Server Error",
         });
+    } finally {
+        await prisma.$disconnect();
     }
 };
 
-export const DeleteCatgeory = async (req: Request, res: Response, next: NextFunction) => {
+export const DeleteSubSubCatgeory = async (req: Request, res: Response, next: NextFunction) => {
+    const prisma = new PrismaClient();
     try {
-        const prisma = new PrismaClient();
         const { id } = req.params; // Extract ID from URL parameters
 
         // Ensure ID is provided
         if (!id) {
             return res.status(400).json({ status: false, message: "ID is required." });
         }
-
-        const category = await prisma.category.findUnique({
+        const category = await prisma.subSubCategory.findUnique({
             where: { id: Number(id) },
         });
 
@@ -210,7 +201,7 @@ export const DeleteCatgeory = async (req: Request, res: Response, next: NextFunc
                 unlinkSync(existingImagePath);
             }
         }
-        await prisma.category.delete({
+        await prisma.subSubCategory.delete({
             where: { id: Number(id) },
         });
 
@@ -223,5 +214,7 @@ export const DeleteCatgeory = async (req: Request, res: Response, next: NextFunc
             status: false,
             message: "Internal Server Error",
         });
+    } finally {
+        await prisma.$disconnect();
     }
 };
