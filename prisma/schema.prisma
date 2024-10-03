@@ -56,7 +56,7 @@ model subcategory {
   name           String           @db.VarChar(255)
   image          String
   created_on     DateTime         @default(now()) @db.Date
-  category       category         @relation(fields: [cat_id], references: [id])
+  category       category         @relation(fields: [cat_id], references: [id], map: "SubCategory_cat_id_fkey")
   subsubcategory subsubcategory[]
 
   @@index([cat_id], map: "subcategory_cat_id_fkey")
@@ -69,9 +69,17 @@ model subsubcategory {
   name        String      @db.VarChar(255)
   image       String
   created_on  DateTime    @default(now()) @db.Date
-  category    category    @relation(fields: [cat_id], references: [id])
-  subcategory subcategory @relation(fields: [sub_cat_id], references: [id])
+  category    category    @relation(fields: [cat_id], references: [id], map: "SubSubCategory_cat_id_fkey")
+  subcategory subcategory @relation(fields: [sub_cat_id], references: [id], map: "SubSubCategory_sub_cat_id_fkey")
 
   @@index([cat_id], map: "sub_sub_categories_cat_id_fkey")
   @@index([sub_cat_id], map: "sub_sub_categories_sub_cat_id_fkey")
+}
+
+model brands {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  image      String
+  content    String   @db.LongText
+  created_on DateTime @default(now()) @db.Date
 }
